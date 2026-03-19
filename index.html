@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#0a0a1a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="i-Pro CRM"/>
+<title>i-Pro Solutions CRM</title>
+<link rel="manifest" href="manifest.json"/>
+
+<!-- Share Target registration handled via manifest -->
+
+<style>
+/* ═══════════════════════════════════════════
+   RESET + VARIABLES
+═══════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0c0c10;--s1:#16161e;--s2:#1e1e2a;--bd:#2a2a3a;
+  --ac:#00c9a7;--dk:#0a0a1a;--red:#ff4d6d;--or:#ffb347;
+  --tx:#e8e8f0;--mu:#6b6b85;--safe-top:env(safe-area-inset-top);
+  --safe-bot:env(safe-area-inset-bottom);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+input,textarea,select,button{font-family:inherit;font-size:inherit;}
+
+/* ═══════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════ */
+#app{display:flex;flex-direction:column;height:100%;padding-top:var(--safe-top);}
+
+/* Header */
+.hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--dk);border-bottom:1px solid var(--bd);flex-shrink:0;}
+.hdr-logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#003d30,var(--ac));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;flex-shrink:0;}
+.hdr-title{font-size:15px;font-weight:700;background:linear-gradient(90deg,#fff,var(--ac));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex:1;}
+.hdr-badge{background:rgba(0,201,167,.15);border:1px solid rgba(0,201,167,.3);color:var(--ac);font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:1px;}
+
+/* Tab bar */
+.tabs{display:flex;background:var(--dk);border-bottom:1px solid var(--bd);flex-shrink:0;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px 6px;cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;gap:2px;}
+.tab.active{border-bottom-color:var(--ac);}
+.tab-ic{font-size:18px;line-height:1;}
+.tab-lb{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mu);}
+.tab.active .tab-lb{color:var(--ac);}
+
+/* Screens */
+.screens{flex:1;overflow:hidden;position:relative;}
+.screen{position:absolute;inset:0;overflow-y:auto;display:none;-webkit-overflow-scrolling:touch;}
+.screen.active{display:block;}
+.screen-pad{padding:14px;padding-bottom:calc(20px + var(--safe-bot));}
+
+/* ═══════════════════════════════════════════
+   COMPONENTS
+═══════════════════════════════════════════ */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px;}
+.card-title{color:var(--ac);font-weight:800;font-size:13px;margin-bottom:4px;}
+.card-sub{color:var(--mu);font-size:11px;line-height:1.6;}
+
+.lbl{color:var(--mu);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;display:block;}
+input[type=text],input[type=email],input[type=tel],input[type=url],input[type=number],textarea,select{
+  width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:8px;
+  padding:11px 12px;color:var(--tx);font-size:14px;outline:none;
+  transition:border-color .18s;-webkit-appearance:none;appearance:none;
+}
+input:focus,textarea:focus,select:focus{border-color:var(--ac);}
+input::placeholder,textarea::placeholder{color:var(--mu);}
+textarea{resize:none;line-height:1.5;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b85' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+
+.field{margin-bottom:10px;}
+.row{display:flex;gap:8px;}
+.row .field{flex:1;}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:13px 18px;border:none;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;transition:all .18s;width:100%;}
+.btn-primary{background:linear-gradient(135deg,#003d30,var(--ac));color:var(--dk);}
+.btn-primary:active{opacity:.85;}
+.btn-secondary{background:var(--s2);border:1px solid var(--bd);color:var(--tx);}
+.btn-secondary:active{border-color:var(--ac);color:var(--ac);}
+.btn-danger{background:var(--s2);border:1px solid var(--red);color:var(--red);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-sm{padding:9px 14px;font-size:12px;border-radius:8px;}
+.btn-row{display:flex;gap:8px;margin-top:8px;}
+
+/* Lead items */
+.lead-list{display:flex;flex-direction:column;gap:5px;margin:10px 0;}
+.lead-item{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;}
+.lead-icon{font-size:14px;flex-shrink:0;width:20px;text-align:center;}
+.lead-val{flex:1;font-size:12px;font-family:monospace;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lead-del{background:none;border:none;cursor:pointer;color:var(--mu);font-size:16px;padding:2px 4px;border-radius:4px;flex-shrink:0;line-height:1;}
+.lead-del:hover,.lead-del:active{color:var(--red);}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0;}
+.stat{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 6px;text-align:center;}
+.stat.has{border-color:rgba(0,201,167,.4);background:rgba(0,201,167,.05);}
+.stat-n{font-size:22px;font-weight:800;color:var(--mu);line-height:1;}
+.stat.has .stat-n{color:var(--ac);}
+.stat-l{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-top:2px;}
+
+/* Toast */
+#toast{position:fixed;bottom:calc(80px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(20px);background:#1e1e2a;border:1px solid var(--ac);color:var(--tx);padding:11px 20px;border-radius:24px;font-size:13px;font-weight:600;white-space:nowrap;opacity:0;transition:all .3s;z-index:9999;pointer-events:none;max-width:90vw;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.err{border-color:var(--red);color:var(--red);}
+
+/* Spinner */
+.spinner{width:20px;height:20px;border:2px solid rgba(0,201,167,.3);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Contact rows */
+.contact-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--bd);cursor:pointer;}
+.contact-row:active{background:rgba(0,201,167,.05);}
+.contact-row.selected{background:rgba(0,201,167,.07);}
+.c-avatar{width:42px;height:42px;border-radius:21px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:var(--mu);flex-shrink:0;}
+.contact-row.selected .c-avatar{background:var(--ac);color:var(--dk);border-color:var(--ac);}
+.c-info{flex:1;min-width:0;}
+.c-name{font-size:14px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.c-company{font-size:11px;color:var(--ac);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.c-detail{font-size:11px;color:var(--mu);}
+
+/* Settings rows */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--bd);}
+.setting-label{font-size:14px;color:var(--tx);}
+.setting-value{font-size:12px;color:var(--mu);font-family:monospace;}
+
+/* Push bar (fixed bottom) */
+.push-bar{position:sticky;bottom:0;padding:10px 14px;background:var(--dk);border-top:1px solid var(--bd);}
+
+/* Step instructions */
+.steps .step{display:flex;gap:10px;margin-bottom:10px;}
+.step-num{width:22px;height:22px;border-radius:11px;background:var(--ac);color:var(--dk);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-text{font-size:12px;color:var(--mu);line-height:1.6;flex:1;}
+.step-text strong{color:var(--tx);}
+
+/* Empty state */
+.empty{text-align:center;padding:40px 20px;}
+.empty-icon{font-size:48px;opacity:.3;margin-bottom:12px;}
+.empty-title{font-size:16px;font-weight:700;color:var(--tx);margin-bottom:6px;}
+.empty-sub{font-size:13px;color:var(--mu);line-height:1.7;}
+
+/* Install banner */
+#install-banner{display:none;background:linear-gradient(135deg,#003d30,#0a1a16);border:1px solid rgba(0,201,167,.3);border-radius:10px;padding:12px 14px;margin-bottom:12px;flex-direction:row;align-items:center;gap:10px;}
+#install-banner.show{display:flex;}
+.install-text{flex:1;font-size:12px;color:var(--ac);line-height:1.5;}
+.install-btn{background:var(--ac);color:var(--dk);border:none;border-radius:7px;padding:8px 14px;font-weight:800;font-size:12px;cursor:pointer;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-logo">™</div>
+    <div class="hdr-title">i-Pro Solutions CRM</div>
+    <div class="hdr-badge">PWA</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('extract')" id="tab-extract">
+      <div class="tab-ic">🔍</div><div class="tab-lb">Extract</div>
+    </div>
+    <div class="tab" onclick="switchTab('contacts')" id="tab-contacts">
+      <div class="tab-ic">👥</div><div class="tab-lb">Contacts</div>
+    </div>
+    <div class="tab" onclick="switchTab('manual')" id="tab-manual">
+      <div class="tab-ic">✏️</div><div class="tab-lb">Add Lead</div>
+    </div>
+    <div class="tab" onclick="switchTab('settings')" id="tab-settings">
+      <div class="tab-ic">⚙️</div><div class="tab-lb">Settings</div>
+    </div>
+  </div>
+
+  <!-- Screens -->
+  <div class="screens">
+
+    <!-- ═══ EXTRACT SCREEN ═══ -->
+    <div class="screen active screen-pad" id="screen-extract">
+
+      <div id="install-banner">
+        <div class="install-text">📲 Install this app on your home screen for the best experience</div>
+        <button class="install-btn" onclick="installPWA()">Install</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔍 Extract Leads from Text or URL</div>
+        <div class="card-sub">Paste a URL, email, WhatsApp message, or any text. Shared content from other apps lands here automatically.</div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Paste URL, text, or shared content</label>
+        <textarea id="extract-input" rows="5" placeholder="Paste a website URL, email thread, WhatsApp message, business card text, LinkedIn profile..."></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary btn-sm" style="flex:1" onclick="extractFromInput()">🔍 Extract Leads</button>
+        <button class="btn btn-secondary btn-sm" style="flex:1" onclick="fetchUrl()">🌐 Fetch URL</button>
+      </div>
+
+      <div id="extract-stats" class="stats-row" style="display:none">
+        <div class="stat" id="st-email"><div class="stat-n" id="sn-email">0</div><div class="stat-l">📧 Emails</div></div>
+        <div class="stat" id="st-phone"><div class="stat-n" id="sn-phone">0</div><div class="stat-l">📞 Phones</div></div>
+        <div class="stat" id="st-co"   ><div class="stat-n" id="sn-co">0</div><div class="stat-l">🏢 Names</div></div>
+      </div>
+
+      <div id="extract-leads" class="lead-list"></div>
+
+      <div id="extract-actions" style="display:none">
+        <div class="field">
+          <label class="lbl">Company Name (override)</label>
+          <input type="text" id="extract-company" placeholder="Company name..."/>
+        </div>
+        <button class="btn btn-primary" id="extract-push-btn" onclick="pushExtracted()">
+          🚀 Push to CRM
+        </button>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="card-title">📤 Share from other apps</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-text">In <strong>Chrome</strong>, open any website → tap ⋮ → <strong>Share</strong> → select <strong>i-Pro CRM</strong></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-text">In <strong>WhatsApp</strong>, long-press a message → Share → <strong>i-Pro CRM</strong></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-text">The shared text or URL arrives here <strong>automatically</strong></div></div>
+        </div>
+        <div class="card-sub" style="margin-top:6px">💡 Share only works after installing the app to your home screen.</div>
+      </div>
+    </div>
+
+    <!-- ═══ CONTACTS SCREEN ═══ -->
+    <div class="screen screen-pad" id="screen-contacts">
+      <div class="card">
+        <div class="card-title">👥 Phone Contacts → CRM</div>
+        <div class="card-sub">Pick contacts from your phone and push them to your CRM sheet. Tap multiple to select in bulk.</div>
+      </div>
+
+      <div class="field">
+        <button class="btn btn-secondary" onclick="loadContacts()">
+          <span id="contacts-btn-text">📱 Open Contact Picker</span>
+        </button>
+      </div>
+
+      <div id="contacts-notice" class="card" style="background:rgba(0,201,167,.05);border-color:rgba(0,201,167,.2);">
+        <div class="card-sub">
+          <strong style="color:var(--ac)">How it works:</strong><br>
+          Tap "Open Contact Picker" → select one or more contacts → tap Done → review → push to CRM.<br><br>
+          <strong style="color:var(--ac)">Note:</strong> Uses Chrome's built-in Contact Picker API. Works on Android Chrome 80+.
+        </div>
+      </div>
+
+      <div id="contacts-list" class="lead-list"></div>
+
+      <div id="contacts-push" style="display:none" class="push-bar">
+        <button class="btn btn-primary" id="contacts-push-btn" onclick="pushContacts()">
+          🚀 Push Selected Contacts to CRM
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ MANUAL SCREEN ═══ -->
+    <div class="screen screen-pad" id="screen-manual">
+      <div class="card">
+        <div class="card-title">✏️ Add Lead Manually</div>
+        <div class="card-sub">Quickly add a lead with all details. Push directly to your CRM sheet.</div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label class="lbl">Company Name *</label>
+          <input type="text" id="m-company" placeholder="Acme Pvt Ltd"/>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl">Contact Name</label>
+          <input type="text" id="m-contact" placeholder="Rahul Sharma"/>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl">Email</label>
+        <input type="email" id="m-email" placeholder="rahul@acme.com"/>
+      </div>
+      <div class="field">
+        <label class="lbl">Phone</label>
+        <input type="tel" id="m-phone" placeholder="9876543210"/>
+      </div>
+      <div class="field">
+        <label class="lbl">City</label>
+        <input type="text" id="m-city" placeholder="Mumbai"/>
+      </div>
+      <div class="field">
+        <label class="lbl">Lead Type</label>
+        <select id="m-leadtype">
+          <option>Fresh Trademark</option>
+          <option>Renewal</option>
+          <option>Partnership</option>
+          <option>Collaboration</option>
+          <option>Quotation</option>
+          <option>Multi-Class</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="lbl">Trademark Classes</label>
+        <select id="m-class1">
+          <option value="">— Select primary class —</option>
+        </select>
+      </div>
+      <div class="field">
+        <select id="m-class2">
+          <option value="">— Select additional class (optional) —</option>
+        </select>
+      </div>
+      <div class="field">
+        <select id="m-class3">
+          <option value="">— Select additional class (optional) —</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="lbl">Notes</label>
+        <textarea id="m-notes" rows="3" placeholder="Any additional details..."></textarea>
+      </div>
+
+      <button class="btn btn-primary" onclick="pushManual()" id="manual-push-btn">
+        🚀 Push to CRM
+      </button>
+    </div>
+
+    <!-- ═══ SETTINGS SCREEN ═══ -->
+    <div class="screen screen-pad" id="screen-settings">
+      <div class="card">
+        <div class="card-title">⚡ Apps Script Webhook URL</div>
+        <div class="card-sub">Paste your Google Apps Script Web App URL. All leads are sent here and land in your MASTER_LEADS sheet.</div>
+        <div class="field" style="margin-top:10px">
+          <input type="url" id="s-webhook" placeholder="https://script.google.com/macros/s/.../exec"/>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="saveWebhook()">💾 Save</button>
+          <button class="btn btn-secondary btn-sm" style="flex:1" onclick="testWebhook()">🔗 Test</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 How to get the Webhook URL</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-text">Open your <strong>Google Sheet</strong></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Extensions → Apps Script</strong></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Deploy → Manage Deployments</strong></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-text">Copy the <strong>Web App URL</strong></div></div>
+          <div class="step"><div class="step-num">5</div><div class="step-text">Paste above and tap <strong>Save</strong></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 Stats</div>
+        <div class="setting-row">
+          <div class="setting-label">Emails pushed (deduplicated)</div>
+          <div class="setting-value" id="s-sent-count">0</div>
+        </div>
+        <div class="setting-row" style="border:none">
+          <div class="setting-label">App version</div>
+          <div class="setting-value">i-Pro CRM PWA v1.0</div>
+        </div>
+        <button class="btn btn-danger btn-sm" style="margin-top:10px" onclick="clearCache()">🗑️ Clear Email Cache</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📲 Install App on Home Screen</div>
+        <div class="card-sub" style="margin-bottom:10px">Install this as a native-like app — no Play Store, no APK needed.</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-text">Open this page in <strong>Chrome</strong> on your Android phone</div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-text">Tap the <strong>⋮ menu</strong> (top right)</div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-text">Tap <strong>"Add to Home screen"</strong></div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-text">Tap <strong>Add</strong> — app appears on your home screen</div></div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="installPWA()">📲 Install Now</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">ℹ️ About i-Pro Solutions</div>
+        <div class="card-sub" style="line-height:2">
+          102, Ahmed Manor, Mazgaon, Mumbai<br>
+          📧 help@iprosolutions.co.in<br>
+          📞 +91 93240 90425<br>
+          🌐 iprosolutions.co.in
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS + STATE
+// ═══════════════════════════════════════════════════════════════
+const WEBHOOK_KEY  = 'ipro_webhook';
+const SENT_KEY     = 'ipro_sent';
+let   deferredInstall = null;
+
+// Mutable extracted leads
+let extracted = { emails:[], phones:[], companies:[], city:'', address:'', sourceUrl:'' };
+let selectedContacts = [];
+
+const TM_CLASSES = [
+  'Class 1 — Chemicals','Class 2 — Paints & Varnishes','Class 3 — Cosmetics & Cleaning',
+  'Class 4 — Lubricants & Fuels','Class 5 — Pharmaceuticals','Class 6 — Metal Goods',
+  'Class 7 — Machinery','Class 8 — Hand Tools','Class 9 — Electronics & Software',
+  'Class 10 — Medical Devices','Class 11 — Environmental Control','Class 12 — Vehicles',
+  'Class 13 — Firearms','Class 14 — Jewellery & Watches','Class 15 — Musical Instruments',
+  'Class 16 — Paper & Printed Goods','Class 17 — Rubber & Plastics','Class 18 — Leather Goods',
+  'Class 19 — Building Materials','Class 20 — Furniture','Class 21 — Housewares & Glass',
+  'Class 22 — Ropes & Fibres','Class 23 — Yarns & Threads','Class 24 — Fabrics & Textiles',
+  'Class 25 — Clothing & Footwear','Class 26 — Lace & Buttons','Class 27 — Carpets',
+  'Class 28 — Toys & Games','Class 29 — Meat & Processed Foods','Class 30 — Staple Foods',
+  'Class 31 — Agricultural Products','Class 32 — Light Beverages','Class 33 — Wines & Spirits',
+  'Class 34 — Tobacco Products','Class 35 — Advertising & Business Services',
+  'Class 36 — Finance & Insurance','Class 37 — Construction & Repair',
+  'Class 38 — Telecommunications','Class 39 — Transport & Travel',
+  'Class 40 — Treatment of Materials','Class 41 — Education & Entertainment',
+  'Class 42 — Technology & Software Services','Class 43 — Food & Drink Services',
+  'Class 44 — Medical & Veterinary Services','Class 45 — Legal & Security Services',
+];
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  // Load saved webhook
+  const saved = localStorage.getItem(WEBHOOK_KEY) || '';
+  document.getElementById('s-webhook').value = saved;
+
+  // Load sent count
+  const sent = JSON.parse(localStorage.getItem(SENT_KEY) || '[]');
+  document.getElementById('s-sent-count').textContent = sent.length;
+
+  // Populate class dropdowns
+  ['m-class1','m-class2','m-class3'].forEach(id => {
+    const sel = document.getElementById(id);
+    TM_CLASSES.forEach(cls => {
+      const opt = document.createElement('option');
+      opt.value = cls; opt.textContent = cls;
+      sel.appendChild(opt);
+    });
+  });
+
+  // Handle share target (URL params)
+  const params = new URLSearchParams(window.location.search);
+  const sharedText = params.get('text') || params.get('url') || params.get('title') || '';
+  if (sharedText) {
+    document.getElementById('extract-input').value = sharedText;
+    extractFromInput();
+  }
+
+  // PWA install prompt
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstall = e;
+    document.getElementById('install-banner').classList.add('show');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('install-banner').classList.remove('show');
+    toast('✅ App installed to home screen!');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// TAB NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHONE NORMALISER
+// ═══════════════════════════════════════════════════════════════
+function normalisePhone(raw) {
+  if (!raw) return '';
+  let p = raw.toString().trim();
+  const plus = p.startsWith('+');
+  p = p.replace(/\D/g, '');
+  if (!p || p.length < 7) return '';
+  if (p.startsWith('0091'))                          p = p.slice(4);
+  else if (p.startsWith('00') && p.length > 10)      p = p.slice(2);
+  else if (p.startsWith('0') && p.length === 11)     p = p.slice(1);
+  if (/^[6-9]\d{9}$/.test(p))                       return '91' + p;
+  if (/^91[6-9]\d{9}$/.test(p))                     return p;
+  if (/^1\d{10}$/.test(p))                           return p;
+  if (/^44\d{10}$/.test(p))                          return p;
+  if ((plus || p.length >= 11) && p.length <= 15)    return p;
+  return '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXTRACTION
+// ═══════════════════════════════════════════════════════════════
+function extractFromText(text) {
+  const emailRx = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+  const emails  = [...new Set((text.match(emailRx)||[]).filter(e => !e.match(/\.(png|jpg|gif|svg|js)$/i) && e.length < 100))].slice(0,20);
+
+  const phoneRx = /(?:\+91[\s\-]?)?(?:0)?[6-9]\d{9}|(?:\+?[1-9]\d{0,2}[\s\-.]?)?\(?\d{3,4}\)?[\s\-.]?\d{3,4}[\s\-.]?\d{3,4}/g;
+  const phones  = [...new Set((text.match(phoneRx)||[]).map(p => normalisePhone(p)).filter(Boolean))].slice(0,10);
+
+  const companies = [];
+  const coRx = /(?:[A-Z][a-zA-Z\s]{2,30}(?:Pvt\.?\s*Ltd\.?|Limited|Inc\.?|Corp\.?|LLP|LLC|Co\.?))/g;
+  (text.match(coRx)||[]).slice(0,3).forEach(m => companies.push(m.trim()));
+
+  const CITIES = ['Mumbai','Delhi','New Delhi','Bangalore','Bengaluru','Hyderabad','Chennai','Kolkata','Pune','Ahmedabad','Surat','Jaipur','Lucknow','Nagpur','Indore','Thane','Noida','Gurgaon','Gurugram','Navi Mumbai','Chandigarh','Mysore','Coimbatore','Ranchi','Amritsar','Bhopal','Patna'];
+  const city = CITIES.find(c => text.includes(c)) || '';
+
+  return { emails, phones, companies, city };
+}
+
+function extractFromInput() {
+  const text = document.getElementById('extract-input').value.trim();
+  if (!text) { toast('Paste some text first', true); return; }
+
+  // Check if it's a URL
+  if (text.startsWith('http')) {
+    extracted.sourceUrl = text;
+  }
+
+  const result = extractFromText(text);
+  extracted.emails    = result.emails;
+  extracted.phones    = result.phones;
+  extracted.companies = result.companies;
+  extracted.city      = result.city;
+  extracted.sourceUrl = extracted.sourceUrl || '';
+
+  if (result.companies[0]) document.getElementById('extract-company').value = result.companies[0];
+
+  renderExtracted();
+  const total = result.emails.length + result.phones.length;
+  if (total === 0) toast('No emails or phones found', true);
+  else toast(`Found ${total} item(s)`);
+}
+
+async function fetchUrl() {
+  const text = document.getElementById('extract-input').value.trim();
+  if (!text.startsWith('http')) { toast('Enter a full URL starting with https://', true); return; }
+
+  const btn = document.querySelector('[onclick="fetchUrl()"]');
+  btn.innerHTML = '<div class="spinner"></div>';
+  btn.disabled = true;
+
+  try {
+    // Use a CORS proxy to fetch page content
+    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(text);
+    const res  = await fetch(proxyUrl);
+    const data = await res.json();
+    const html = data.contents || '';
+    const plain= html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
+
+    extracted.sourceUrl = text;
+    document.getElementById('extract-input').value = plain.slice(0, 3000);
+    extractFromInput();
+  } catch(e) {
+    toast('Could not fetch page. Paste the text manually instead.', true);
+  }
+  btn.innerHTML = '🌐 Fetch URL';
+  btn.disabled = false;
+}
+
+function renderExtracted() {
+  const stats = document.getElementById('extract-stats');
+  const list  = document.getElementById('extract-leads');
+  const acts  = document.getElementById('extract-actions');
+
+  const total = extracted.emails.length + extracted.phones.length;
+  stats.style.display = '';
+  acts.style.display  = total > 0 ? '' : 'none';
+
+  // Update stat cards
+  updateStat('email', extracted.emails.length);
+  updateStat('phone', extracted.phones.length);
+  updateStat('co',    extracted.companies.length);
+
+  // Render lead items
+  list.innerHTML = '';
+  [
+    ...extracted.emails.map(v    => ({ type:'emails',    icon:'📧', v })),
+    ...extracted.phones.map(v    => ({ type:'phones',    icon:'📞', v })),
+    ...extracted.companies.map(v => ({ type:'companies', icon:'🏢', v })),
+    ...(extracted.city ? [{ type:'city', icon:'📍', v:extracted.city }] : []),
+  ].forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'lead-item';
+    row.innerHTML = `
+      <span class="lead-icon">${item.icon}</span>
+      <span class="lead-val" title="${item.v}">${item.v}</span>
+      <button class="lead-del" onclick="removeExtracted('${item.type}','${item.v.replace(/'/g,"\\'")}')">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+function updateStat(key, n) {
+  const card = document.getElementById('st-' + key);
+  document.getElementById('sn-' + key).textContent = n;
+  if (n > 0) card.classList.add('has'); else card.classList.remove('has');
+}
+
+function removeExtracted(type, val) {
+  if (type === 'city') { extracted.city = ''; }
+  else extracted[type] = extracted[type].filter(v => v !== val);
+  renderExtracted();
+}
+
+async function pushExtracted() {
+  const companyOverride = document.getElementById('extract-company').value.trim();
+  const companies = companyOverride ? [companyOverride] : extracted.companies;
+
+  if (!extracted.emails.length && !extracted.phones.length) {
+    toast('Nothing to push — add at least an email or phone', true); return;
+  }
+
+  setBtnLoading('extract-push-btn', true);
+  try {
+    await pushToCRM({
+      emails:    extracted.emails,
+      phones:    extracted.phones,
+      companies: companies,
+      cities:    extracted.city ? [extracted.city] : [],
+      addresses: [],
+      domain:    extracted.sourceUrl ? new URL(extracted.sourceUrl).hostname : '',
+      sourceUrl: extracted.sourceUrl || '',
+      pageTitle: companies[0] || '',
+      timestamp: new Date().toISOString(),
+    });
+    toast(`✅ ${extracted.emails.length} email(s) pushed to CRM!`);
+    extracted = { emails:[], phones:[], companies:[], city:'', address:'', sourceUrl:'' };
+    document.getElementById('extract-input').value = '';
+    document.getElementById('extract-company').value = '';
+    renderExtracted();
+    document.getElementById('extract-stats').style.display  = 'none';
+    document.getElementById('extract-actions').style.display = 'none';
+  } catch(e) { toast(e.message, true); }
+  setBtnLoading('extract-push-btn', false);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTACTS
+// ═══════════════════════════════════════════════════════════════
+async function loadContacts() {
+  if (!('contacts' in navigator && 'ContactsManager' in window)) {
+    toast('Contact Picker not supported. Use Chrome 80+ on Android.', true);
+    return;
+  }
+  try {
+    const contacts = await navigator.contacts.select(
+      ['name','email','tel','organization'],
+      { multiple: true }
+    );
+    if (!contacts || contacts.length === 0) { toast('No contacts selected'); return; }
+
+    selectedContacts = contacts;
+    renderContacts(contacts);
+    document.getElementById('contacts-notice').style.display = 'none';
+    document.getElementById('contacts-push').style.display = '';
+    toast(`${contacts.length} contact(s) loaded`);
+  } catch(e) {
+    toast(e.name === 'SecurityError' ? 'Allow contacts access when prompted' : e.message, true);
+  }
+}
+
+function renderContacts(contacts) {
+  const list = document.getElementById('contacts-list');
+  list.innerHTML = '';
+  contacts.forEach((c, i) => {
+    const name    = (c.name || ['Unknown'])[0] || 'Unknown';
+    const email   = (c.email || [])[0] || '';
+    const phone   = normalisePhone((c.tel || [])[0] || '');
+    const company = (c.organization || [])[0] || '';
+    const initial = name[0]?.toUpperCase() || '?';
+
+    const row = document.createElement('div');
+    row.className = 'lead-item';
+    row.style.flexDirection = 'column';
+    row.style.alignItems = 'flex-start';
+    row.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;width:100%">
+        <div class="c-avatar" style="width:32px;height:32px;border-radius:16px;font-size:13px;flex-shrink:0">${initial}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--tx)">${name}</div>
+          ${company ? `<div style="font-size:11px;color:var(--ac)">${company}</div>` : ''}
+        </div>
+        <button class="lead-del" onclick="removeContact(${i})" style="font-size:14px">✕</button>
+      </div>
+      ${email ? `<div style="font-size:11px;color:var(--mu);margin-top:3px;padding-left:40px">📧 ${email}</div>` : ''}
+      ${phone ? `<div style="font-size:11px;color:var(--mu);padding-left:40px">📞 ${phone}</div>` : ''}`;
+    list.appendChild(row);
+  });
+
+  const btn = document.getElementById('contacts-push-btn');
+  btn.textContent = `🚀 Push ${contacts.length} Contact${contacts.length > 1 ? 's' : ''} to CRM`;
+}
+
+function removeContact(i) {
+  selectedContacts.splice(i, 1);
+  if (selectedContacts.length === 0) {
+    document.getElementById('contacts-list').innerHTML = '';
+    document.getElementById('contacts-push').style.display = 'none';
+    document.getElementById('contacts-notice').style.display = '';
+  } else {
+    renderContacts(selectedContacts);
+  }
+}
+
+async function pushContacts() {
+  if (!selectedContacts.length) return;
+  setBtnLoading('contacts-push-btn', true);
+  let pushed = 0, failed = 0;
+
+  for (const c of selectedContacts) {
+    try {
+      const name    = (c.name || [''])[0] || '';
+      const email   = (c.email || [])[0] || '';
+      const phone   = normalisePhone((c.tel || [])[0] || '');
+      const company = (c.organization || [])[0] || name;
+
+      await pushToCRM({
+        emails:    email ? [email] : [],
+        phones:    phone ? [phone] : [],
+        companies: [company],
+        cities: [], addresses: [],
+        domain: '', sourceUrl:'Android Contacts',
+        pageTitle: company, timestamp: new Date().toISOString(),
+      });
+      pushed++;
+    } catch(e) { failed++; }
+  }
+
+  setBtnLoading('contacts-push-btn', false);
+  toast(`✅ Pushed ${pushed} contact${pushed>1?'s':''}${failed?' ('+failed+' failed)':''} to CRM`);
+  selectedContacts = [];
+  document.getElementById('contacts-list').innerHTML = '';
+  document.getElementById('contacts-push').style.display = 'none';
+  document.getElementById('contacts-notice').style.display = '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MANUAL ENTRY
+// ═══════════════════════════════════════════════════════════════
+async function pushManual() {
+  const company = document.getElementById('m-company').value.trim();
+  const email   = document.getElementById('m-email').value.trim();
+  const phone   = document.getElementById('m-phone').value.trim();
+
+  if (!company && !email && !phone) {
+    toast('Enter at least a Company, Email, or Phone', true); return;
+  }
+
+  const classes = [
+    document.getElementById('m-class1').value,
+    document.getElementById('m-class2').value,
+    document.getElementById('m-class3').value,
+  ].filter(Boolean).join(', ');
+
+  setBtnLoading('manual-push-btn', true);
+  try {
+    await pushToCRM({
+      emails:    email  ? [email]  : [],
+      phones:    phone  ? [normalisePhone(phone) || phone] : [],
+      companies: company? [company]: [],
+      cities:    document.getElementById('m-city').value.trim() ? [document.getElementById('m-city').value.trim()] : [],
+      addresses: [],
+      domain: '', sourceUrl: 'Android Manual Entry',
+      pageTitle: company || '',
+      timestamp: new Date().toISOString(),
+      leadType:  document.getElementById('m-leadtype').value,
+      classes,
+      notes:     document.getElementById('m-notes').value.trim(),
+    });
+    toast('✅ Lead pushed to CRM!');
+    // Reset form
+    ['m-company','m-contact','m-email','m-phone','m-city','m-notes'].forEach(id => document.getElementById(id).value = '');
+    ['m-class1','m-class2','m-class3'].forEach(id => document.getElementById(id).selectedIndex = 0);
+  } catch(e) { toast(e.message, true); }
+  setBtnLoading('manual-push-btn', false);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════════
+function saveWebhook() {
+  const url = document.getElementById('s-webhook').value.trim();
+  if (!url) { toast('Enter a webhook URL first', true); return; }
+  localStorage.setItem(WEBHOOK_KEY, url);
+  toast('✅ Webhook URL saved');
+}
+
+async function testWebhook() {
+  const url = document.getElementById('s-webhook').value.trim();
+  if (!url) { toast('Enter a webhook URL first', true); return; }
+  try {
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.status === 'ok') toast('✅ Connected: ' + (data.message || 'Webhook live'));
+    else toast('Response: ' + JSON.stringify(data), true);
+  } catch(e) {
+    toast('Failed: ' + e.message + '. Check URL and redeploy.', true);
+  }
+}
+
+function clearCache() {
+  if (!confirm('Clear email cache? Same emails can be pushed again.')) return;
+  localStorage.removeItem(SENT_KEY);
+  document.getElementById('s-sent-count').textContent = '0';
+  toast('✅ Cache cleared');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CRM PUSH
+// ═══════════════════════════════════════════════════════════════
+async function pushToCRM(payload) {
+  const webhookUrl = localStorage.getItem(WEBHOOK_KEY) || '';
+  if (!webhookUrl) throw new Error('Webhook URL not set. Go to ⚙️ Settings and paste your Apps Script URL.');
+
+  const res = await fetch(webhookUrl, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(payload),
+  });
+
+  // Deduplicate
+  const sent    = JSON.parse(localStorage.getItem(SENT_KEY) || '[]');
+  const newEmails= (payload.emails || []).map(e => e.toLowerCase());
+  localStorage.setItem(SENT_KEY, JSON.stringify([...new Set([...sent, ...newEmails])]));
+  document.getElementById('s-sent-count').textContent =
+    JSON.parse(localStorage.getItem(SENT_KEY) || '[]').length;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+let toastTimer;
+function toast(msg, err = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.toggle('err', err);
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function setBtnLoading(id, loading) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) btn.innerHTML = '<div class="spinner"></div>';
+}
+
+async function installPWA() {
+  if (deferredInstall) {
+    deferredInstall.prompt();
+    const { outcome } = await deferredInstall.userChoice;
+    if (outcome === 'accepted') deferredInstall = null;
+  } else {
+    alert('To install:\n1. Tap the ⋮ menu in Chrome\n2. Tap "Add to Home screen"\n3. Tap Add');
+  }
+}
+</script>
+</body>
+</html>
